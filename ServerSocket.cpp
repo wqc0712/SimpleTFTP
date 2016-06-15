@@ -52,7 +52,7 @@ bool TestInformation(char* mode, char* filename, int sock,struct sockaddr_in cli
         printf ("文件名非法!\n");
         std::string ErrMess = "错误的文件名(";
         ErrMess = ErrMess+filename+")";
-        len = SendErrPacket(0x04,ErrMess.c_str(),PACKETBUFFER[0]);
+        len = SendErrPacket(0x01,ErrMess.c_str(),PACKETBUFFER[0]);
         if (SEND(PACKETBUFFER[0]) != len) {
             throw ExceptionSock("包大小错误\n");
         }
@@ -89,7 +89,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     if (fp == NULL) {//建立文件失败
         printf ("建立文件失败!");
         std::string ErrMess = "文件无法打开";
-        len = SendErrPacket(0x04,ErrMess.c_str(),PACKETBUFFER);
+        len = SendErrPacket(0x03,ErrMess.c_str(),PACKETBUFFER);
         if (SEND(PACKETBUFFER) != len) {
             throw ExceptionSock("包大小错误\n");
         }
@@ -146,7 +146,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
                 if (tid != ntohs (client.sin_port))	{ /* 检查端口 */
                     printf ("无法接收文件!端口错误!)\n");
                     std::string ErrMess = "端口错误!";
-                    len = SendErrPacket(0x04,ErrMess.c_str(),PACKETBUFFER);
+                    len = SendErrPacket(0x05,ErrMess.c_str(),PACKETBUFFER);
                     if (SEND(PACKETBUFFER) != len) {
                         throw ExceptionSock("包大小错误\n");
                     }
@@ -234,7 +234,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     if (fp == NULL) {	//建立文件失败
         printf ("建立文件失败!");
         std::string ErrMess = "文件无法找到";
-        len = SendErrPacket(0x04,ErrMess.c_str(),PACKETBUFFER[0]);
+        len = SendErrPacket(0x01,ErrMess.c_str(),PACKETBUFFER[0]);
         if (SEND(PACKETBUFFER[0]) != len) {
             throw ExceptionSock("包大小错误\n");
         }
@@ -290,7 +290,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
                     if (tid != ntohs (client.sin_port)) {	/* 检查端口 */
                         printf ("无法接收文件!端口错误!)\n");
                         std::string ErrMess = "错误的端口号";
-                        len = SendErrPacket(0x04,ErrMess.c_str(),RECVBUFF);
+                        len = SendErrPacket(0x05,ErrMess.c_str(),RECVBUFF);
                         if (SEND(RECVBUFF)!= len) {
                             throw ExceptionSock("包大小错误\n");
                         }

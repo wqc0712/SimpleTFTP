@@ -133,7 +133,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                     if (tid != ntohs (client.sin_port)) {	/* 检查端口 */
                         printf ("无法接收文件!端口错误!)\n");
                         std::string ErrMess = "错误的端口号";
-                        len = SendErrPacket(0x04,ErrMess.c_str(),RECVBUFF);
+                        len = SendErrPacket(0x05,ErrMess.c_str(),RECVBUFF);
                         if (SEND(RECVBUFF)!= len) {
                             throw ExceptionSock("包大小错误\n");
                         }
@@ -253,7 +253,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                 if (tid != ntohs (client.sin_port))	{ /* 检查端口 */
                     printf ("无法接收文件!端口错误!)\n");
                     std::string ErrMess = "端口错误!";
-                    len = SendErrPacket(0x04,ErrMess.c_str(),PACKETBUFFER);
+                    len = SendErrPacket(0x05,ErrMess.c_str(),PACKETBUFFER);
                     if (SEND(PACKETBUFFER) != len) {
                         throw ExceptionSock("包大小错误\n");
                     }
