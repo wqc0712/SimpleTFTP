@@ -7,12 +7,14 @@
 
 using namespace std;
 
+string ProgType = "Server";
+char Output[255];
 int main (int argc, char **argv)
 {
     extern char *optarg;
     int sock, n, Length, status, tid;
     char opcode, *bufindex, filename[196], mode[12];
-
+    pid_t fpid;
     ServerSocket* server;
     struct sockaddr_in client;
 
@@ -38,15 +40,21 @@ int main (int argc, char **argv)
                 }
                 usleep(1000);
             }
-
-            printf("来自 %s 的连接, 端口号为 %d\n", inet_ntoa(client.sin_addr), ntohs (client.sin_port));
-
+            sprintf(Output,"来自 %s 的连接, 端口号为 %d\n", inet_ntoa(client.sin_addr), ntohs (client.sin_port));
+            cout << Output;
+            PrintLog(Output);
             bufindex = NetBuffer;
             if (bufindex++[0] != 0x00) {
                 throw ExceptionSock("包格式错误!");
             }
             tid = ntohs (client.sin_port);
-            DealPacket(filename, mode, &opcode, &bufindex);
+            opcode = *bufindex++;//提取opcode
+            if (opcode == 1 || opcode == 2) {
+                strncpy (filename, bufindex, sizeof (filename) - 1);//提取文件名
+                bufindex += strlen (filename) + 1;
+                strncpy (mode, bufindex, sizeof (mode) - 1);//提取传输模式
+                bufindex += strlen (mode) + 1;
+            }
             switch (opcode)
             {
                 case 1:
@@ -69,10 +77,12 @@ int main (int argc, char **argv)
                     printf("无效包,忽略\n");
                     break;
             }
+            CloseLog();
         }
     } catch (ExceptionSock Err) {
         cerr << Err.description();
     }
+
 }
 
 

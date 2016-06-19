@@ -6,7 +6,7 @@
 #include "ExceptionSock.h"
 #include "DefineType.h"
 
-void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
+void SendC (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
     int len, Length, opcode, ssize = 0, n, i, j, bcount = 0, tid = 0;
     unsigned short int count = 0, rcount = 0;
     unsigned char filebuf[MAXDATASIZE + 1];
@@ -14,7 +14,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
             RECVBUFF[MAXDATASIZE + 12];
     char filename[128], mode[12], *bufindex;
     struct sockaddr_in ack;
-
+  //  char *ipaddress;
     FILE *fp;
 
     strcpy (filename, pFilename);
@@ -51,7 +51,6 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                 j--;
                 continue;
             }
-
             if (tid != ntohs (client.sin_port))	{ /* 检查端口 */
                 printf ("无法接收文件!端口错误!)\n");
                 std::string ErrMess = "端口错误!";
@@ -78,6 +77,16 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                     if (SEND(NetBuffer) != len) {
                         throw ExceptionSock("包大小错误\n");
                     }
+                } else if (opcode == 5) {
+                    printf("%s\n",filebuf);
+                    len = sprintf (RECVBUFF, "%c%c%c%c", 0x00, 0x04, 0x00, 0x00);
+                    RECVBUFF[2] = (char) ((count & 0xFF00) >> 8);
+                    RECVBUFF[3] = (char) (count & 0x00FF);	//填充计数器
+
+                    if (SEND(RECVBUFF) != len) {
+                        throw ExceptionSock("包大小错误\n");
+                    }
+                    throw ExceptionSock("检测到错误包\n");
                 }
             }
             else {
@@ -130,8 +139,9 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                         j--;
                         continue;
                     }
+                  //  ipaddress = inet_ntoa(client.sin_addr);
                     if (tid != ntohs (client.sin_port)) {	/* 检查端口 */
-                        printf ("无法接收文件!端口错误!)\n");
+                        printf ("无法接收文件!端口错误!\n");
                         std::string ErrMess = "错误的端口号";
                         len = SendErrPacket(0x05,ErrMess.c_str(),RECVBUFF);
                         if (SEND(RECVBUFF)!= len) {
@@ -155,6 +165,16 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                             if (SEND(RECVBUFF) != len) {
                                 throw ExceptionSock("包大小错误\n");
                             }
+                        }else if (opcode == 5) {
+                            printf("%s\n",filebuf);
+                            len = sprintf (RECVBUFF, "%c%c%c%c", 0x00, 0x04, 0x00, 0x00);
+                            RECVBUFF[2] = (char) ((count & 0xFF00) >> 8);
+                            RECVBUFF[3] = (char) (count & 0x00FF);	//填充计数器
+
+                            if (SEND(RECVBUFF) != len) {
+                                throw ExceptionSock("包大小错误\n");
+                            }
+                            throw ExceptionSock("收到错误包\n");
                         }
                     }
                     else {
@@ -183,10 +203,13 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
 
     fclose (fp);
     printf ("文件成功发送\n");
+    char Data[255];
+    sprintf(Data,"::文件发送成功,文件名:%s\n",pFilename);
+    PrintLog(Data);
     return;
 }
 
-void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
+void GetC (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
     int len, Length, opcode, i, j, n, tid = 0, flag = 1;
     unsigned short int count = 0, rcount = 0;
     unsigned char filebuf[MAXDATASIZE + 1];
@@ -195,7 +218,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
     char filename[128], mode[12], *bufindex, REVEBUF[512];
     struct sockaddr_in data;
     FILE *fp;
-
+   // char *ipaddress;
     strcpy(filename, pFilename);
     strcpy(mode, pMode);
     printf("文件接收程序开始\n");
@@ -250,8 +273,9 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                     j--;
                     continue;
                 }
+               // ipaddress = inet_ntoa(client.sin_addr);
                 if (tid != ntohs (client.sin_port))	{ /* 检查端口 */
-                    printf ("无法接收文件!端口错误!)\n");
+                    printf ("无法接收文件!端口错误!\n");
                     std::string ErrMess = "端口错误!";
                     len = SendErrPacket(0x05,ErrMess.c_str(),PACKETBUFFER);
                     if (SEND(PACKETBUFFER) != len) {
@@ -285,6 +309,16 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
                         if (SEND(PACKETBUFFER) != len) {
                             throw ExceptionSock("包大小错误\n");
                         }
+                    } else if (opcode == 5) {
+                        printf("%s\n",filebuf);
+                        len = sprintf (REVEBUF, "%c%c%c%c", 0x00, 0x04, 0x00, 0x00);
+                        REVEBUF[2] = (char) ((count & 0xFF00) >> 8);
+                        REVEBUF[3] = (char) (count & 0x00FF);	//填充计数器
+
+                        if (SEND(REVEBUF) != len) {
+                            throw ExceptionSock("包大小错误\n");
+                        }
+                        throw ExceptionSock("检测到错误包\n");
                     }
                 } else {
                     len = sprintf (REVEBUF, "%c%c%c%c", 0x00, 0x04, 0x00, 0x00);
@@ -317,4 +351,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock) {
     fclose(fp);
     sync();
     printf("文件接收成功,关闭文件\n");
+    char Data[255];
+    sprintf(Data,"::文件发送成功,文件名:%s\n",pFilename);
+    PrintLog(Data);
 }

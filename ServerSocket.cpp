@@ -25,16 +25,6 @@ ServerSocket::~ServerSocket() {
 
 }
 
-void DealPacket(char* filename, char* mode, char* opcode, char** Ptr) {
-    *opcode = **Ptr++;	//提取opcode
-    if (*opcode == 1 || *opcode == 2) {
-        strncpy (filename, *Ptr, sizeof (filename) - 1);//提取文件名
-        *Ptr += strlen (filename) + 1;
-        strncpy (mode, *Ptr, sizeof (mode) - 1);//提取传输模式
-        *Ptr += strlen (mode) + 1;
-    }
-}
-
 bool TestInformation(char* mode, char* filename, int sock,struct sockaddr_in client){
     int len;
     char PACKETBUFFER[MAXACKFREQ][MAXDATASIZE+12];
@@ -69,6 +59,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     extern int errno;
     char filename[128], mode[12], fullpath[196], *bufindex, REVEBUF[512];
     struct sockaddr_in data;
+   // char *ipaddress;
 
     FILE *fp;
     strcpy(filename, pFilename);
@@ -84,6 +75,15 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
 
     strcpy(fullpath, path);
     strncat(fullpath, filename, sizeof (fullpath) - 1);	//调整文件名
+    if (!access(fullpath,0)) {
+        printf("文件已存在!");
+        std::string ErrMess = "文件已存在";
+        len = SendErrPacket(0x06,ErrMess.c_str(),PACKETBUFFER);
+        if (SEND(PACKETBUFFER) != len) {
+            throw ExceptionSock("包大小错误\n");
+        }
+        return;
+    }
     fp = fopen(fullpath, "w");
 
     if (fp == NULL) {//建立文件失败
@@ -143,6 +143,7 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
                     j--;
                     continue;
                 }
+               // ipaddress = inet_ntoa(client.sin_addr);
                 if (tid != ntohs (client.sin_port))	{ /* 检查端口 */
                     printf ("无法接收文件!端口错误!)\n");
                     std::string ErrMess = "端口错误!";
@@ -201,7 +202,9 @@ void Get (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     fclose(fp);
     sync();
     printf("文件接收成功,关闭文件\n");
-
+    char Data[255];
+    sprintf(Data,"::文件发送成功,文件名:%s\n",filename);
+    PrintLog(Data);
     return;
 }
 
@@ -212,7 +215,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     char PACKETBUFFER[MAXACKFREQ][MAXDATASIZE + 12], RECVBUFF[MAXDATASIZE + 12];
     char filename[128], mode[12], fullpath[196], *bufindex;
     struct sockaddr_in ack;
-
+  //  char *ipaddress;
     FILE *fp;
 
     strcpy (filename, pFilename);
@@ -232,7 +235,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     fp = fopen (fullpath, "r");
 
     if (fp == NULL) {	//建立文件失败
-        printf ("建立文件失败!");
+        printf ("无此文件!");
         std::string ErrMess = "文件无法找到";
         len = SendErrPacket(0x01,ErrMess.c_str(),PACKETBUFFER[0]);
         if (SEND(PACKETBUFFER[0]) != len) {
@@ -287,6 +290,7 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
                         j--;
                         continue;
                     }
+                //    ipaddress = inet_ntoa(client.sin_addr);
                     if (tid != ntohs (client.sin_port)) {	/* 检查端口 */
                         printf ("无法接收文件!端口错误!)\n");
                         std::string ErrMess = "错误的端口号";
@@ -339,5 +343,8 @@ void Send (char *pFilename, struct sockaddr_in client, char *pMode, int tid) {
     }
     fclose (fp);
     printf ("文件成功发送\n");
+    char Data[255];
+    sprintf(Data,"::文件发送成功,文件名:%s\n",pFilename);
+    PrintLog(Data);
     return;
 }

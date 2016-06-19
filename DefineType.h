@@ -18,6 +18,7 @@
 #include <sys/wait.h>
 #include <dirent.h>
 #include <cstring>
+#include "log.h"
 
 #define ERROR -1
 

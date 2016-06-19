@@ -7,11 +7,12 @@
 #include "ClientSocket.h"
 #include "ExceptionSock.h"
 
-
+string ProgType = "Client";
+char Output[255];
 int main (int argc, char **argv) {
 
     extern char *optarg;
-    int sock,len, opt;	;
+    int sock,len, opt;
     char opcode = 0, filename[196], mode[12] = "octet";
     struct hostent *host;
     struct sockaddr_in client;
@@ -65,20 +66,23 @@ int main (int argc, char **argv) {
     if (SEND(NetBuffer) != len) {
         throw ExceptionSock("包大小错误!\n");
     }
-    printf("连接到 %s, 端口号为 %d\n", inet_ntoa(client.sin_addr), ntohs (client.sin_port));
+    sprintf(Output,"连接到 %s, 端口号为 %d\n", inet_ntoa(client.sin_addr), ntohs (client.sin_port));
+    cout << Output;
+    PrintLog(Output);
     switch (opcode) {
         case RRQ:
             printf("接收文件请求\n");
-            Get(filename, client, mode, sock);
+            GetC(filename, client, mode, sock);
             break;
         case WRQ:
             printf("发送文件请求\n");
-            Send(filename, client, mode, sock);
+            SendC(filename, client, mode, sock);
             break;
         default:
             printf("无效包,忽略\n");
     }
     close (sock);
+    CloseLog();
     return 1;
 }
 

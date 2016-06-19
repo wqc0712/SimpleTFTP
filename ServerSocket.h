@@ -20,7 +20,6 @@ public:
 
 };
 
-void DealPacket(char* filename, char* mode, char* opcode, char** Ptr);
 void Send (char *, struct sockaddr_in, char *, int);
 void Get (char *, struct sockaddr_in, char *, int);
 

@@ -6,8 +6,8 @@
 #define SIMPLETFTP_CLIENTSOCKET_H
 #include "Socket.h"
 
-void Send (char *pFilename, struct sockaddr_in client, char *pMode, int sock);
-void Get (char *pFilename, struct sockaddr_in client, char *pMode, int sock);
+void SendC (char *pFilename, struct sockaddr_in client, char *pMode, int sock);
+void GetC (char *pFilename, struct sockaddr_in client, char *pMode, int sock);
 
 
 #endif //SIMPLETFTP_CLIENTSOCKET_H

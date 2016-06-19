@@ -36,7 +36,7 @@ public:
     sockaddr_in m_addr;
 };
 
-static char path[64] = "/tmp/";
+static char path[64] = "./file/";
 static int port = 169;
 static unsigned short int ackfreq = 1;
 static int datasize = 512;
